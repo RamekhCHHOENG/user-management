@@ -74,7 +74,7 @@
               <v-form ref="form_register" v-model="createValid" lazy-validation>
                 <v-card-text>
                   <v-text-field
-                    v-model="registerForm.fullName"
+                    v-model="registerForm.name"
                     label="Full Name*"
                     prepend-icon="mdi-account"
                     :rules="[(v) => !!v || 'Full First Name is required']"
@@ -175,7 +175,7 @@ export default {
         password: '',
       },
       registerForm: {
-        fullName: '',
+        name: '',
         email: '',
         password: '',
         newPassword: ''
@@ -219,6 +219,7 @@ export default {
       if (!this.$refs.form_register.validate()) return;
       try {
         const payload = {
+          name: this.registerForm.name,
           email: this.registerForm.email,
           password: this.registerForm.password
         }

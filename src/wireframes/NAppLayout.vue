@@ -1,18 +1,5 @@
 <template>
   <nav>
-    <!-- <v-app-bar app :extension-height="extensionHeight">
-      <n-app-title-card
-        v-model="pageTitle"
-      />
-      <v-spacer></v-spacer>
-
-
-      <n-profile-menu
-        :items="profileMenuItems"
-        :on-click-on-logout="onClickOnLogout"
-      />
-    </v-app-bar> -->
-
     <v-app-bar color="red" dark app>
       <v-app-bar-nav-icon @click.stop="drawer.mini = !drawer.mini"></v-app-bar-nav-icon>
       <v-spacer></v-spacer>
@@ -125,7 +112,7 @@ export default {
     return {
       users: useAuthStore(),
       drawer: {
-        mini: false
+        mini: true
       },
       extensionHeight: 86,
       links :[

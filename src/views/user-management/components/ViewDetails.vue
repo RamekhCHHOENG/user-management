@@ -30,11 +30,11 @@
           </v-row>
           <v-row class="mt-6">
             <v-col cols="6" class="mt-0 pa-0">Role</v-col>
-            <v-col cols="6" class="font-weight-bold text-right ma-0 pa-0">{{ items.role.name }}</v-col>
+            <v-col cols="6" class="font-weight-bold text-right ma-0 pa-0">{{ items.role}}</v-col>
           </v-row>
           <v-row class="mt-6">
             <v-col cols="6" class="mt-0 pa-0">Status</v-col>
-            <v-col cols="6" class="font-weight-bold text-right ma-0 pa-0">{{ items.status.name }}</v-col>
+            <v-col cols="6" class="font-weight-bold text-right ma-0 pa-0">{{ items.status}}</v-col>
           </v-row>
         </div>
       </v-card-text>

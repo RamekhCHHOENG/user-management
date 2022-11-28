@@ -1,14 +1,21 @@
 <template>
-  <nav>
+  <div>
     <v-app-bar color="red" dark app>
       <v-app-bar-nav-icon @click.stop="drawer.mini = !drawer.mini"></v-app-bar-nav-icon>
       <v-spacer></v-spacer>
-      <v-menu offset-y>
+      <v-menu
+        offset-y 
+        open-on-hover
+        transition="slide-y-transition"
+        bottom
+      >
         <template v-slot:activator="{ on }">
-          <v-btn text v-on="on">
-            <v-icon left>mdi-account</v-icon>
-            <span>Menu</span>
-          </v-btn>
+          <v-avatar v-on="on" button>
+            <img
+              src="https://cdn.vuetifyjs.com/images/john.jpg"
+              alt="John"
+            >
+          </v-avatar>
         </template>
         <v-list flat>
           <v-list-item
@@ -19,7 +26,8 @@
             router
           >
             <v-list-item-title
-              @click="onLogout"
+              width="200px"
+              @click="link.methods"
             >
               {{ link.text }}
             </v-list-item-title>
@@ -35,16 +43,6 @@
       :mini-variant-width="64"
       aria-user-select-none
     >
-      <!-- <s-drawer-card
-        :title="appName"
-        :subtitle="appVersion"
-        :mini-variant="drawer.mini"
-      />
-      <s-drawer-list
-        :items="drawerItems"
-        :mini-variant="drawer.mini"
-      /> -->
-  
       <v-layout
         class="ma-6"
         align-center
@@ -70,7 +68,7 @@
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
-<!-- 
+
     <v-main key="content">
       <v-container class="py-8 px-6" fluid>
         <slot>
@@ -79,24 +77,33 @@
       </v-container>
     </v-main>
 
-    <slot name="extension"></slot> -->
-  </nav>
+    <slot name="extension"></slot>
+
+    <change-password 
+      :value="toggleChangePassword"
+      @onSubmit="onSubmitChangePass"
+      @onCancel="toggleChangePassword = false"
+    />
+    <v-snackbar
+      v-model="snackbar.toggle"
+      :color="snackbar.color"
+      top
+      right
+    >
+      <span>{{ snackbar.text}}</span>
+    </v-snackbar>
+  </div>
 </template>
 
 <script>
 
-// import DateTimeModule from '@/components/trays/DateTimeModule'
-// import NProfileMenu from '@/components/profile/NProfileMenu'
-// import NAppTitleCard from '@/components/title/NAppTitleCard'
-import router from '@/router';
 import { useAuthStore } from '@/store/useAuthStore'
+import { useUserStore } from '@/store/useUserStore'
 
 export default {
   name: 'NAppLayout',
   components: {
-    // DateTimeModule,
-    // NProfileMenu,
-    // NAppTitleCard
+    'change-password': () => import('@/views/auth/ChangePassword.vue')
   },
   props: {
     profileMenuItems: {
@@ -110,22 +117,25 @@ export default {
   },
   data () {
     return {
-      users: useAuthStore(),
+      toggleChangePassword: false,
+      snackbar: {
+        toggle: false,
+        color: '',
+        text: ''
+      },
       drawer: {
         mini: true
       },
-      extensionHeight: 86,
+      extensionHeight: 56,
       links :[
           {icon: 'mdi-microsoft-windows', text:'Dashboard', route: '/'},
           {icon: 'mdi-account', text:'Users', route: '/users'}
       ],
       profiles :[
-          {icon: 'mdi-logout-variant', text:'Logout', route: '/login'}
+          {icon: 'mdi-logout-variant', text:'Change Password', methods: () => this.onChangePassword()},
+          {icon: 'mdi-logout-variant', text:'Logout', route: '/auth', methods: () => this.onLogout()}
       ]
     }
-  },
-  mounted () {
-
   },
   computed: {
     appName () {
@@ -138,13 +148,26 @@ export default {
     async onLogout() {
       try {
         await useAuthStore().logout()
-        alert('Logout sucess')
       } catch (error) {
         console.log(error)
-      } finally {
-        router.push('/')
       }
     },
+    onChangePassword () {
+      this.toggleChangePassword = true
+    },
+    async onSubmitChangePass (item) {
+      try {
+        await useUserStore().changePassword(item)
+        
+        this.snackbar.text = 'Succesfully change password'
+        this.snackbar.color = 'primary'
+        this.snackbar.toggle = true
+      } catch (error) {
+        alert(error)
+      } finally {
+        this.toggleChangePassword = false
+      }
+    }
   }
 }
 </script>

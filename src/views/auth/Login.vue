@@ -2,8 +2,15 @@
   <v-row>
     <v-col cols="4"></v-col>
     <v-col cols="4">
+      <v-row>
+        <v-col class="mt-6">
+          <v-alert :value="alert.show" :type="alert.type">
+            {{ alert.text }}
+          </v-alert>
+        </v-col>
+      </v-row>
       <v-card
-      class="mt-12"
+        class="mt-12"
         elevation="4"
         tag="section"
         light
@@ -27,7 +34,7 @@
           <v-tabs-items v-model="tab">
             <v-tab-item :value="0">
               <v-card-text>
-                <v-form v-model="valid" ref="form" lazy-validation>
+                <v-form v-model="valid" ref="form">
                   <v-text-field
                     v-model="form.email"
                     :rules="[rules.emailRequired, rules.email]"
@@ -64,14 +71,14 @@
                       </v-btn>
                     </v-col>
                     <v-col class="text-left">
-                      <a href="/" class="subtitle-2">Forgot your password?</a>
+                      <a href="/reset-password" class="subtitle-2">Forgot your password?</a>
                     </v-col>
                   </v-row>
                 </v-form>
               </v-card-text>
             </v-tab-item>
             <v-tab-item :value="1">
-              <v-form ref="form_register" v-model="createValid" lazy-validation>
+              <v-form ref="form_register" v-model="createValid">
                 <v-card-text>
                   <v-text-field
                     v-model="registerForm.name"
@@ -145,12 +152,11 @@
 
 <script>
 
-import router from '@/router';
+// import router from '@/router'
 import { useAuthStore } from '@/store/useAuthStore'
 
 export default {
   name: "LoginView",
-  //   props: {
   //     value: {
   //       type: Boolean,
   //       default: () => false
@@ -169,7 +175,11 @@ export default {
       show1: false,
       valid: false,
       createValid: false,
-      userType: 1,
+      alert: {
+        show: false,
+        text: 'error',
+        type: 'error',
+      },
       form: {
         email: '',
         password: '',
@@ -211,8 +221,6 @@ export default {
         await useAuthStore().login(payload)
       } catch (error) {
         console.log(error)
-      } finally {
-        router.push('/')
       }
     },
     async register() {
@@ -226,9 +234,7 @@ export default {
 
         await useAuthStore().register(payload)
       } catch (error) {
-        console.log(error);
-      } finally {
-        router.push('/')
+        console.log(error, 'error');
       }
     },
   },

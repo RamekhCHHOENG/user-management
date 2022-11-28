@@ -18,17 +18,8 @@ export default {
   components: {
     NAppLayout
   },
-  // props: {
-  //   DrawerBuilder: {
-  //     required: true
-  //   }
-  // },
   data: () => ({
-    user: {
-      name: 'Unauthenticated user',
-      role: 'Login required',
-      participantCode: 'Unknown Participant Code'
-    }
+    user: {}
   }),
   methods: {
     async onClickOnLogout () {
@@ -36,9 +27,6 @@ export default {
     }
   },
   computed: {
-    // drawerItems () {
-    //   return this.DrawerBuilder.build(this.$can)
-    // },
     profileMenuItems () {
       return [
         {

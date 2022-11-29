@@ -1,24 +1,31 @@
 <template>
   <v-app>
     <router-view/>
+
+    <snackbar-manager left ref="snackbar" key="snackbarManager" />
+    <error-dialog ref="errorDialog" key="errorDialog" />
   </v-app>
 </template>
 
 <script>
 
-// import NAppWireframes from '@/wireframes/NAppWireframe.vue'
-import { useAuthStore } from '@/store/useAuthStore'
+import SnackbarManager from '@/components/Snackbar.vue'
+import ErrorDialog from '@/components/ErrorDialog.vue'
 
 export default {
   name: 'App',
-  // components: {
-  //   NAppWireframes
-  // }, 
-  mounted () {
-    useAuthStore().auth()
+  components: {
+    SnackbarManager,
+    ErrorDialog
   },
-  data: () => ({
-    user: useAuthStore().user
-  }),
+  mounted () {
+    this.global()
+  },
+  methods: {
+    global () {
+      this.$root.$snackbar = this.$refs.snackbar
+      this.$root.$error = this.$refs.errorDialog
+    }
+  }
 };
 </script>

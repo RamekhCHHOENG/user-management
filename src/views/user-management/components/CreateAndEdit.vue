@@ -15,11 +15,7 @@
         </v-card-title>
         <v-divider></v-divider>
         <v-card-text>
-          <v-form
-            v-model="createValid"
-            :disabled="loading"
-            ref="form_register"
-          >
+          <v-form v-model="createValid" :disabled="loading" ref="form_register">
             <v-card-text>
               <v-row>
                 <v-col cols="6" class="py-0 mt-6">
@@ -142,9 +138,10 @@
     </v-dialog>
   </v-row>
 </template>
+
 <script>
-import cloneDeep from "lodash/cloneDeep"
-import { useFilterStore } from "@/store/useFilterStore"
+import cloneDeep from "lodash/cloneDeep";
+import { useFilterStore } from "@/store/useFilterStore";
 
 export default {
   name: "CreateAndEditView",
@@ -171,11 +168,10 @@ export default {
       immediate: true,
       deep: true,
       handler(val) {
-
         if (val && this.isEdit) {
-          this.form = cloneDeep(val)
+          this.form = cloneDeep(val);
         } else {
-          this.form = {}
+          this.form = {};
         }
       },
     },
@@ -188,10 +184,10 @@ export default {
       showPassword: false,
       createValid: false,
       form: {
-        name: '',
-        phoneNumber: '',
-        email: '',
-        password: '',
+        name: "",
+        phoneNumber: "",
+        email: "",
+        password: "",
       },
 
       statusList: useFilterStore().statuses,
@@ -206,23 +202,23 @@ export default {
           );
         },
         min: (v) =>
-          v.length >= 8 || "Your password must be at least 8 characters",
+          (v && v.length >= 8) || "Your password must be at least 8 characters",
         emailRequired: (value) => !!value || "You must enter your Email",
         passwordRequired: (value) => !!value || "Your password is required",
       },
     };
   },
   async create() {
-    await useFilterStore().getStatusList()
-    await useFilterStore().getRoleList()
+    await useFilterStore().getStatusList();
+    await useFilterStore().getRoleList();
   },
   methods: {
     onCancel() {
-      this.$emit("onCancel")
+      this.$emit("onCancel");
     },
     onCreateOrEdit() {
-      if (!this.$refs.form_register.validate()) return
-      this.$emit("submit", this.form)
+      if (!this.$refs.form_register.validate()) return;
+      this.$emit("submit", this.form);
     },
   },
   computed: {
@@ -231,7 +227,7 @@ export default {
         ...this.$attrs,
         value: this.value,
         loading: this.loading,
-      };
+      }
     },
   },
 };

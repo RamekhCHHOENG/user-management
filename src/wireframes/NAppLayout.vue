@@ -1,21 +1,29 @@
 <template>
   <div>
-    <v-app-bar color="red" dark app>
-      <v-app-bar-nav-icon @click.stop="drawer.mini = !drawer.mini"></v-app-bar-nav-icon>
+    <v-app-bar color="primary" dark app>
+      <v-app-bar-nav-icon
+        @click.stop="drawer.mini = !drawer.mini"
+      ></v-app-bar-nav-icon>
       <v-spacer></v-spacer>
-      <v-menu
-        offset-y 
-        open-on-hover
-        transition="slide-y-transition"
-        bottom
-      >
+      <v-menu offset-y open-on-hover transition="slide-y-transition" bottom>
         <template v-slot:activator="{ on }">
-          <v-avatar v-on="on" button>
-            <img
-              src="https://cdn.vuetifyjs.com/images/john.jpg"
-              alt="John"
-            >
-          </v-avatar>
+          <div v-on="on" class="d-flex">
+            <v-list color="transparent" nav dense>
+              <v-list-item class="text-right subtitle-2">
+                <v-list-item-content>
+                  <v-list-item-title>
+                    {{ username || "Username" }}
+                  </v-list-item-title>
+                  <v-list-item-subtitle>
+                    {{ userRole || "Role" }} User
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+            <v-avatar class="mr-3 mt-2">
+              <img src="https://cdn.vuetifyjs.com/images/john.jpg" alt="John" />
+            </v-avatar>
+          </div>
         </template>
         <v-list flat>
           <v-list-item
@@ -25,11 +33,8 @@
             active-class="border"
             router
           >
-            <v-list-item-title
-              width="200px"
-              @click="link.methods"
-            >
-              {{ link.text }}
+            <v-list-item-title width="200px" @click="link.methods">
+              <v-icon>{{ link.icon }}</v-icon> {{ link.text }}
             </v-list-item-title>
           </v-list-item>
         </v-list>
@@ -43,14 +48,10 @@
       :mini-variant-width="64"
       aria-user-select-none
     >
-      <v-layout
-        class="ma-6"
-        align-center
-        column
-      >
+      <v-layout class="ma-6" align-center column>
         <div>{{ appName }}</div>
       </v-layout>
-      
+
       <v-list flat>
         <v-list-item
           v-for="link in links"
@@ -60,10 +61,10 @@
           router
         >
           <v-list-item-action>
-            <v-icon >{{link.icon}}</v-icon>
+            <v-icon>{{ link.icon }}</v-icon>
           </v-list-item-action>
-          <v-list-item-content >
-            <v-list-item-title >{{link.text}}</v-list-item-title>
+          <v-list-item-content>
+            <v-list-item-title>{{ link.text }}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
       </v-list>
@@ -79,95 +80,94 @@
 
     <slot name="extension"></slot>
 
-    <change-password 
+    <change-password
       :value="toggleChangePassword"
       @onSubmit="onSubmitChangePass"
       @onCancel="toggleChangePassword = false"
     />
-    <v-snackbar
-      v-model="snackbar.toggle"
-      :color="snackbar.color"
-      top
-      right
-    >
-      <span>{{ snackbar.text}}</span>
-    </v-snackbar>
   </div>
 </template>
 
 <script>
-
-import { useAuthStore } from '@/store/useAuthStore'
-import { useUserStore } from '@/store/useUserStore'
+import { useAuthStore } from "@/store/useAuthStore"
+import { useUserStore } from "@/store/useUserStore"
 
 export default {
-  name: 'NAppLayout',
+  name: "NAppLayout",
   components: {
-    'change-password': () => import('@/views/auth/ChangePassword.vue')
+    "change-password": () => import("@/views/auth/ChangePassword.vue"),
   },
   props: {
-    profileMenuItems: {
-      type: Array,
-      default: () => []
+    user: {
+      type: Object,
+      required: true,
     },
-    onClickOnLogout: {
-      type: Function,
-      default: () => () => {}
-    }
   },
-  data () {
+  data() {
     return {
       toggleChangePassword: false,
-      snackbar: {
-        toggle: false,
-        color: '',
-        text: ''
-      },
+      userData: {},
       drawer: {
-        mini: true
+        mini: false,
       },
       extensionHeight: 56,
-      links :[
-          {icon: 'mdi-microsoft-windows', text:'Dashboard', route: '/'},
-          {icon: 'mdi-account', text:'Users', route: '/users'}
+      links: [
+        { icon: "mdi-microsoft-windows", text: "Dashboard", route: "/" },
+        { icon: "mdi-account", text: "Users", route: "/users" },
       ],
-      profiles :[
-          {icon: 'mdi-logout-variant', text:'Change Password', methods: () => this.onChangePassword()},
-          {icon: 'mdi-logout-variant', text:'Logout', route: '/auth', methods: () => this.onLogout()}
-      ]
+      profiles: [
+        {
+          icon: "mdi-lock",
+          text: "Change Password",
+          methods: () => this.onChangePassword(),
+        },
+        {
+          icon: "mdi-logout-variant",
+          text: "Logout",
+          route: "/auth",
+          methods: () => this.onLogout(),
+        },
+      ],
     }
   },
   computed: {
-    appName () {
-      return this.drawer.mini
-        ? 'USR'
-        : 'User Management'
-    }
+    username() {
+      return this.userData.name
+    },
+    userRole() {
+      return this.userData.role?.name
+    },
+    appName() {
+      return this.drawer.mini ? "USR" : "User Management"
+    },
+  },
+  mounted() {
+    setInterval(() => {
+      this.userData = this.user
+    }, 5000)
   },
   methods: {
     async onLogout() {
-      try {
-        await useAuthStore().logout()
-      } catch (error) {
-        console.log(error)
-      }
+      await useAuthStore().logout()
+        .then(() => {
+          this.$root.$snackbar.show('Successfully Logout')
+        }).catch((error) => {
+          this.$root.$error.show('Error', error)
+        })
     },
-    onChangePassword () {
+    onChangePassword() {
       this.toggleChangePassword = true
     },
-    async onSubmitChangePass (item) {
-      try {
-        await useUserStore().changePassword(item)
-        
-        this.snackbar.text = 'Succesfully change password'
-        this.snackbar.color = 'primary'
-        this.snackbar.toggle = true
-      } catch (error) {
-        alert(error)
-      } finally {
-        this.toggleChangePassword = false
-      }
-    }
-  }
+    async onSubmitChangePass(item) {
+      await useUserStore().changePassword(item)
+        .then(()=> {
+          this.$root.$snackbar.show('Successfully change password.')
+        }).catch((error) => {
+          this.$root.$error.show('Error', error)
+        }).finally(() => {
+          this.toggleChangePassword = false
+        })
+    },
+  },
 }
 </script>

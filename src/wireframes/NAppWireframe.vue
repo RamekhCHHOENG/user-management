@@ -1,17 +1,11 @@
 <template>
-  <!-- :drawer-items="drawerItems" -->
-  <n-app-layout
-    :profile-menu-user="user"
-    :profile-menu-items="profileMenuItems"
-    :on-click-on-logout="onClickOnLogout"
-  >
-  </n-app-layout>
+  <n-app-layout :user="user"/>
 </template>
 
 <script>
 
 import NAppLayout from './NAppLayout'
-import { IconEnum } from '@/constants'
+import { useAuthStore } from '@/store/useAuthStore'
 
 export default {
   name: 'NAppWireframe',
@@ -19,28 +13,10 @@ export default {
     NAppLayout
   },
   data: () => ({
-    user: {}
+    user: useAuthStore().user
   }),
-  methods: {
-    async onClickOnLogout () {
-      // will implement it later
-    }
-  },
-  computed: {
-    profileMenuItems () {
-      return [
-        {
-          icon: IconEnum.LOCK,
-          title: 'Change password',
-          type: 'item',
-        },
-        {
-          icon: IconEnum.INFO,
-          title: 'About',
-          type: 'item',
-        }
-      ]
-    }
+  mounted () {
+    useAuthStore().auth()
   }
 }
 </script>

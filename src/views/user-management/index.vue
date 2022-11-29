@@ -6,19 +6,7 @@
         <v-row class="mt-6">
           <v-col cols="2">
             <v-autocomplete
-              v-model="filters.id"
-              :items="userIdList"
-              label="ID"
-              clearable
-              outlined
-              dense
-              item-value="id"
-              :item-text="(item) => `${item.id} - ${item.name}`"
-            ></v-autocomplete>
-          </v-col>
-          <v-col cols="2">
-            <v-autocomplete
-              v-model="filters.status"
+              v-model="filters.statusId"
               :items="statusList"
               label="Status"
               clearable
@@ -30,7 +18,7 @@
           </v-col>
           <v-col cols="2">
             <v-autocomplete
-              v-model="filters.role"
+              v-model="filters.roleId"
               :items="roleList"
               label="User Role"
               clearable
@@ -47,6 +35,7 @@
               clearable
               outlined
               dense
+              @keydown.enter="handleSearch"
             ></v-text-field>
           </v-col>
           <v-col cols="1">
@@ -74,13 +63,13 @@
               :items="users"
               :loading="loading"
               :footer-props="{
-                'items-per-page-text':'User per page',
-                'items-per-page-options': [10, 20, 30, 50, 100]
+                'items-per-page-text': 'User per page',
+                'items-per-page-options': [5, 20, 30, 50, 100],
               }"
-              @update:options="options => onTableOptionChange(options)">
+              @update:options="(options) => onTableOptionChange(options)"
             >
               <template v-slot:[`item.phoneNumber`]="{ value }">
-                {{ value || 'N/A' }}
+                {{ value || "N/A" }}
               </template>
               <template v-slot:[`item.id`]="{ value, item }">
                 <a @click="onViewDetail(item)">
@@ -99,17 +88,11 @@
                 </span>
               </template>
               <template v-slot:[`item.actions`]="{ item }">
-                <v-icon 
-                  color="primary"
-                  @click="onEdit(item)"
-                >
+                <v-icon color="primary" @click="onEdit(item)">
                   mdi-pencil
                 </v-icon>
-                <v-icon
-                  color="error"
-                  @click="onToggleDeleteUser(item)"
-                >  
-                  mdi-delete 
+                <v-icon color="error" @click="onToggleDeleteUser(item)">
+                  mdi-delete
                 </v-icon>
               </template>
             </v-data-table>
@@ -129,20 +112,12 @@
       @submit="onSubmit"
       @onCancel="toggleCreateEdit = false"
     />
-    <delete-user-dialog 
+    <delete-user-dialog
       :value="toggleDelete"
       :items="userDetail"
       @onDelete="onSubmitDelete"
       @onCancel="toggleDelete = false"
     />
-    <v-snackbar
-      v-model="snackbar.toggle"
-      :color="snackbar.color"
-      top
-      right
-    >
-    <span>{{ snackbar.text}}</span>
-  </v-snackbar>
   </div>
 </template>
 
@@ -155,9 +130,9 @@ import { mapState, mapActions } from "pinia"
 export default {
   name: "UserViw",
   components: {
-    'view-detail': () => import('./components/ViewDetails.vue'),
-    'create-and-edit-dialog': () => import('./components/CreateAndEdit.vue'),
-    'delete-user-dialog': () => import('./components/DeleteUserDialog.vue')
+    "view-detail": () => import("./components/ViewDetails.vue"),
+    "create-and-edit-dialog": () => import("./components/CreateAndEdit.vue"),
+    "delete-user-dialog": () => import("./components/DeleteUserDialog.vue"),
   },
   data() {
     return {
@@ -166,24 +141,18 @@ export default {
       toggleDelete: false,
       isEdit: false,
       filters: {
-        q: '',
-        id: '',
-        status: '',
-        role: ''
-      },
-      snackbar: {
-        toggle: false,
-        color: '',
-        text: ''
+        q: null,
+        statusId: null,
+        roleId: null,
       },
       userDetail: {},
 
       StatusEnum,
       headers: [
-        { text: "No.", value: "id" },
+        { text: "ID", value: "id" },
         { text: "Name", value: "name" },
         { text: "Email", value: "email" },
-        { text: "Phone Number", value: "phoneNumber"},
+        { text: "Phone Number", value: "phoneNumber" },
         { text: "Role", value: "role.name" },
         { text: "Status", value: "status.name" },
         { text: "Action", value: "actions" },
@@ -193,41 +162,24 @@ export default {
       roleList: useFilterStore().roles,
       // userList: useUserStore().users
     }
-  },  
-  computed: {
-    ...mapState(useUserStore, [
-      'users',
-      'loading'
-    ])
   },
-  async created () {
+  computed: {
+    ...mapState(useUserStore, ["users", "loading"]),
+  },
+  async created() {
     await useFilterStore().getUserIdList()
     await useFilterStore().getStatusList()
     await useFilterStore().getRoleList()
-    // await this.getUserList()
+    await this.getUserList()
   },
   methods: {
-    ...mapActions(useUserStore, 
-    ['getUserList']
-    ),
-    onTableOptionChange () {
-      // this.table.currentPage = options.page
-      // this.table.pageSize = options.itemsPerPage
-      // this.table.sort.order = options.sortDesc[0] ? 'desc' : 'asc'
-      // this.table.sort.prop = options.sortBy[0]
-
-      this.getUserList({
-        // currentPage: this.table.currentPage,
-        ...this.filters
-      })
-      // console.log(options, 'option')
+    ...mapActions(useUserStore, ["getUserList", "getFilterData"]),
+    onTableOptionChange() {
+      this.getFilterData({ ...this.filters })
     },
-    handleSearch () {
-      this.getUserList({...this.filters})
+    handleSearch() {
+      this.getFilterData({ ...this.filters })
     },
-    // async getUserList () {
-    //   await useUserStore().getUserList()
-    // },
     async onViewDetail(item) {
       this.userDetail = item
       this.toggleViewDetail = true
@@ -242,47 +194,40 @@ export default {
       this.userDetail = item
       this.toggleCreateEdit = true
     },
-    onToggleDeleteUser (item) {
+    onToggleDeleteUser(item) {
       this.userDetail = item
       this.toggleDelete = true
     },
     async onSubmitDelete() {
-      try {
-        await useUserStore().deleteUser(this.userDetail)
-
-        this.snackbar.color = 'error'
-        this.snackbar.text = 'Successfuly delete a user'
-        this.snackbar.toggle = true
-      } catch (error) {
-        console.log(error, 'error')
-      } finally {
-        this.toggleDelete = false
-        await this.getUserList()
+      await useUserStore().deleteUser(this.userDetail)
+        .then(() => {
+          this.$root.$snackbar.show('Successfully delete a user.')
+        }).catch((error) => {
+          this.$root.$error.show('Error', error)
+        }).finally(async () => {
+          this.toggleDelete = false
+          await this.getUserList()
+        })
+    },
+    async onSubmit(item) {
+      if (this.isEdit) {
+        await useUserStore().editUser(item)
+          .then(() => {
+            this.$root.$snackbar.show('Successfully update a user.')
+          }).catch((error) => {
+            this.$root.$error.show('Error', error)
+          })
+      } else {
+        await useUserStore().createUser(item)
+          .then(() => {
+            this.$root.$snackbar.show('Successfully create a user.')
+          }).catch((error) => {
+            this.$root.$error.show('Error', error)
+          })
       }
-    },  
-    async onSubmit (item) {
-      try {
-        if (this.isEdit) {
-          await useUserStore().editUser(item)
-          
-          this.snackbar.text = 'Update a user successfully'
-        } else {
-          await useUserStore().createUser(item)
-          
-          this.snackbar.text = 'Create a user successfully'
-        }
-
-        this.snackbar.color = 'primary'
-        this.snackbar.toggle = true
-
-      } catch (error) {
-        alert(error)
-      } finally {
-        // this.isBusy = false
-        this.toggleCreateEdit = false
-        await this.getUserList()
-      }
-    }
+      this.toggleCreateEdit = false
+      await this.getUserList()
+    },
   },
 }
 </script>

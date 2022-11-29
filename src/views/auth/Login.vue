@@ -115,10 +115,10 @@
                   />
                   <v-text-field
                     v-model="registerForm.newPassword"
-                    :append-icon="show1 ? 'mdi-eye' : 'mdi-eye-off'"
+                    :append-icon="show2 ? 'mdi-eye' : 'mdi-eye-off'"
                     :rules="[rules.passwordRequired, rules.passwordMatch]"
-                    :type="show1 ? 'text' : 'password'"
-                    @click:append="show1 = !show1"
+                    :type="show2 ? 'text' : 'password'"
+                    @click:append="show2 = !show2"
                     label="Please enter your password*"
                     prepend-icon="mdi-lock"
                     counter
@@ -171,14 +171,19 @@ export default {
       user: useAuthStore(),
       dialog: false,
       tab: 0,
-      snackbar: false,
       show1: false,
+      show2: false,
       valid: false,
       createValid: false,
       alert: {
         show: false,
         text: 'error',
         type: 'error',
+      },
+      snackbar: {
+        toggle: false,
+        color: '',
+        text: '',
       },
       form: {
         email: '',
@@ -201,7 +206,7 @@ export default {
         emailRequired: (value) => !!value || "You must enter your Email",
         passwordRequired: (value) => !!value || "Your password is required",
         passwordMatch: (value) =>
-          value === this.registerForm.newPassword ||
+          value === this.registerForm.password ||
           "Your passwords don't match",
         min: (v) =>
           v.length >= 8 || "Your password must be at least 8 characters",
@@ -211,31 +216,35 @@ export default {
   },
   methods: {
     async login() {
-      if (!this.$refs.form.validate()) return;
-      try {
-        const payload = {
-          email: this.form.email,
-          password: this.form.password
-        }
+      if (!this.$refs.form.validate()) return
 
-        await useAuthStore().login(payload)
-      } catch (error) {
-        console.log(error)
+      const payload = {
+        email: this.form.email,
+        password: this.form.password
       }
+
+      await useAuthStore().login(payload)
+        .then(() => {
+          //login success
+        }).catch((error) => {
+          this.$root.$error.show('Error', error)
+        })
     },
     async register() {
       if (!this.$refs.form_register.validate()) return;
-      try {
-        const payload = {
+      
+      const payload = {
           name: this.registerForm.name,
           email: this.registerForm.email,
           password: this.registerForm.password
         }
 
         await useAuthStore().register(payload)
-      } catch (error) {
-        console.log(error, 'error');
-      }
+          .then(() => {
+            this.$root.$snackbar.show('Successfully register')
+          }).catch((error) => {
+            this.$root.$error.show('Error', error)
+          })
     },
   },
 };

@@ -1,44 +1,40 @@
 <template>
   <v-snackbar
-    v-on="$listeners"
-    v-bind="$attrs"
-    :color="color"
-    :timeout="timeout"
-    top
+    v-model="showSnackbar"
+    v-bind="options"
+    :multi-line="true"
+    bottom
     right
   >
-    <span>{{ text}}</span>
+    {{ message }}
   </v-snackbar>
 </template>
 
 <script>
+import isEmpty from 'lodash/isEmpty'
+
 export default {
-  name: "SnackbarView",
-  props: {
-    value: {
-      type: Boolean,
-      required: true,
-    },
-    text: {
-      type: String,
-      required: true
-    },
-    color: {
-      type: String,
-      required: true
-    },  
-    timeout: {
-      type: Number,
-      required: false,
-      default: () => 2000,
-    },
-  },
-  watch: {
-    value: {
-      handler (val) {
-        alert(val, 'iam')
+  name: 'SnackbarComponent',
+  data () {
+    return {
+      showSnackbar: false,
+      message: '',
+      options: {
+        color: 'success',
+        timeout: 3000
       }
     }
+  },
+  methods: {
+    show (message, options = {}) {
+      this.message = message
+
+      if (!isEmpty(options)) {
+        this.$set(this, 'options', options)
+      }
+
+      this.showSnackbar = true
+    }
   }
-};
+}
 </script>

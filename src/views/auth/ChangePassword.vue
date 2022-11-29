@@ -51,15 +51,9 @@
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-row justify="space-around">
+          <v-row justify="space-around" class="pa-3">
             <v-col cols="12" class="d-flex">
-              <v-btn
-                @click="onCancel"
-                color="error"
-                depressed
-              > 
-                Cancel 
-              </v-btn>
+              <v-btn @click="onCancel" color="error" depressed> Cancel </v-btn>
               <v-spacer></v-spacer>
               <v-btn
                 color="primary"
@@ -77,6 +71,7 @@
     </v-dialog>
   </v-row>
 </template>
+
 <script>
 export default {
   name: "CreateAndEditView",

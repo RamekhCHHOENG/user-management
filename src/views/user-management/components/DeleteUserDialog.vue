@@ -15,7 +15,8 @@
         </v-card-title>
         <v-divider></v-divider>
         <v-card-text class="mt-6">
-          <span class="body-1">Are you sure you want to delete user name - 
+          <span class="body-1"
+            >Are you sure you want to delete user name -
             <span class="red--text">{{ items.name }}</span> ?
           </span>
         </v-card-text>
@@ -54,8 +55,8 @@ export default {
     },
     items: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
   methods: {
     onCancel() {

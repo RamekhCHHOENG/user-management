@@ -14,25 +14,29 @@ import { StatusEnum } from '@/constants/enums/StatusEnum'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({ 
-    user: {
-      id: '',
-      email: ''
-    } 
+    user: {}
   }),
   actions: {
     auth () {
       onAuthStateChanged(auth, (user) => {
         if (user) {
-          this.user.id = user.uid
-          this.user.email = user.email
+          this.getUserData(user.uid)
           // router.push('/users')
-          // this.checkUserStatus(user.uid)
-          
         } else {
           this.user = {}
           // router.push('/auth')
         }
       })
+    },
+    async getUserData (uid) {
+      const docRef = doc(db, "users", uid)
+      const docSnap = await getDoc(docRef)
+      const user = docSnap.data()
+
+      this.user.id = user.id
+      this.user.email = user.email
+      this.user.name = user.name
+      this.user.role = user.role
     },
     async checkUserStatus (uid) {
       const docRef = doc(db, "users", uid)
@@ -43,10 +47,10 @@ export const useAuthStore = defineStore('auth', {
 
         if (data.status.id == StatusEnum.IN_ACTIVE) {
           router.push('/user-inactive')
+          this.user = {}
         } else {
           router.push('/')
         }
-        if (data.status.id == StatusEnum.IN_ACTIVE) return true
       } else {
         router.push('/user-inactive')
       }
@@ -57,49 +61,54 @@ export const useAuthStore = defineStore('auth', {
       const { email, password } = payload
 
       await signInWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        const user = auth.currentUser
-
-        this.checkUserStatus(user.uid)
-      })
-      .catch((error) => {
-        alert(error.message)
-      })
-    },
-    async register (payload) {
-      const { name, email, password } = payload
-
-      createUserWithEmailAndPassword(auth, email, password)
         .then(() => {
-          router.push('/')
+          const user = auth.currentUser
+
+          this.checkUserStatus(user.uid)
         })
         .catch((error) => {
-          alert(error.message)
-          // ..
+          throw(error)
         })
+    },
+    async register (payload) {
+      const { email, password } = payload
 
-      const user = auth.currentUser
+      createUserWithEmailAndPassword(auth, email, password)
+        .then(async () => {
+          await this.storeUser(payload)                                     
+        })
+        .catch((error) => {
+          throw(error)
+        })
+   },
+   async storeUser (payload) {
+    const { name, email } = payload
+    const uid = auth.currentUser.uid
+    const activeStatus = {
+      id: 1,
+      name: 'Active'
+    }
+    const normalUser = {
+      id: 2,
+      name: 'Normal'
+    }
 
-      const activeStatus = {
-        id: 1,
-        name: 'Active'
-      }
-
-      const normalUser = {
-        id: 2,
-        name: 'Normal'
-      }
-
-      await setDoc(doc(db, "users", user.uid), {
-        id: generateId(5),
-        uid: this.user.uid,
-        name: name,
-        email: email,
-        status: activeStatus,
-        role: normalUser,
-        phoneNumber: '',
-        createdAt: serverTimestamp()
-      })
+    await setDoc(doc(db, "users", uid), {
+      id: generateId(5),
+      uid: uid,
+      name: name,
+      email: email,
+      status: activeStatus,
+      role: normalUser,
+      phoneNumber: '',
+      createdAt: serverTimestamp()
+    })
+    .then(() => {
+      router.push('/')
+    })
+    .catch((error) => {
+      throw(error)
+    })  
    },
    async logout () {
     await signOut(auth)

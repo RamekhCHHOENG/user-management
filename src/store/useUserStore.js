@@ -14,7 +14,11 @@ import {
   serverTimestamp,
   updateDoc,
   deleteDoc,
-  query, 
+  query,
+  // orderBy,
+  // limit,
+  // startAt,
+  // startAfter, 
   // where
 } from "firebase/firestore"
 
@@ -22,50 +26,91 @@ import {
 export const useUserStore = defineStore('users', {
   state: () => ({ 
     users: [],
+    userCache: [],
     loading: false,
 
-    table: {
-      currentPage: 1,
-      pageSize: 10,
-      sort: {
-        prop: '',
-        order: null
-      },
-      totalElements: 0
-    },
-    filters: {}
+    // table: {
+    //   currentPage: 1,
+    //   pageSize: 10,
+    //   sort: {
+    //     prop: '',
+    //     order: null
+    //   },
+    //   totalElements: 0
+    // },
+    // filters: {}
   }),
   actions: {
     async getUserList () {
-      // const {
-      //     q
-      //   } = state
-
       this.users = []
       this.loading = true
 
-      const queryRef = query(collection(db, "users"))
-      const querySnapshot = await getDocs(queryRef)
+      const firstQueryRef = query(
+        collection(db, "users"), 
+        // orderBy(payload.sortBy[0] || 'name'),
+        // limit(payload.itemsPerPage),
+      )
+      const documentSnapshots = await getDocs(firstQueryRef)
 
-      querySnapshot.forEach((doc) => {
-        this.users.push(doc.data()) 
-      })
+      // const lastVisible = documentSnapshots.docs[documentSnapshots.docs.length-1]
+      // console.log(lastVisible)
+      
+      // const next = query(
+      //   collection(db, "users"), 
+      //   // orderBy(payload.sortBy[0] || 'name'),
+      //   limit(payload.itemsPerPage),
+      //   startAfter(lastVisible)
+      // )
 
-      console.log(this.users, 'here user to query')
+      // const querySnapshot = await getDocs(next)
+
+      documentSnapshots.forEach((doc) => {
+        this.users.push(doc.data())
+      }) 
+
+      this.userCache = this.users
       this.loading = false
+    },
+    async getFilterData (payload) {
+      this.loading = true
+
+      this.users = this.userCache
+
+      if (payload.statusId || payload.roleId || payload.q) {
+        this.users = this.users.filter(el => {
+          return (!payload.q || (el.id.toLowerCase().search(payload.q.toLowerCase()) > -1
+            || el.name.toLowerCase().search(payload.q.toLowerCase()) > -1))
+            && (!payload.statusId || (el.status.id === payload.statusId))
+            && (!payload.roleId || (el.role.id === payload.roleId))
+        })
+      }
+
+      setTimeout(() => {
+        this.loading = false
+      }, 900)
     },
     async createUser (payload) {
       const {
-        name,
         email,
         password,
+      } = payload
+
+      await createUserWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          this.storUserData(payload)
+        }).catch((error) => {
+          throw(error)
+        })
+
+    },
+    async storUserData (payload) {
+      const {
+        name,
+        email,
         role,
         status,
         phoneNumber
       } = payload
-
-      await createUserWithEmailAndPassword(auth, email, password)
-
       const uid = auth.currentUser.uid
 
       await setDoc(doc(db, "users", uid), {
@@ -77,6 +122,10 @@ export const useUserStore = defineStore('users', {
         status: status,
         phoneNumber: phoneNumber || '',
         createdAt: serverTimestamp()
+      }).then(() => {
+        //create user
+      }).catch((error) => {
+        throw(error)
       })
     },
     async editUser (payload) {
@@ -89,7 +138,7 @@ export const useUserStore = defineStore('users', {
         phoneNumber
       } = payload
 
-      const userRef = doc(db, "users", uid);
+      const userRef = doc(db, "users", uid)
 
       await updateDoc(userRef, {
         name: name,
@@ -97,27 +146,43 @@ export const useUserStore = defineStore('users', {
         role: role,
         status: status,
         phoneNumber: phoneNumber
+      }).then(() => {
+        // return
+      }).catch((error) => {
+        throw(error)
       })
+      return false
     },
     async deleteUser (payload) {
       const { uid } = payload
-      await deleteDoc(doc(db, "users", uid));
+
+      await deleteDoc(doc(db, 'users', uid))
+        .then(() => {
+          //Success delete a user
+        }).catch((error) => {
+          throw(error)
+        })
     },
     async resetPassword (payload) {
       const { email } = payload
 
       await sendPasswordResetEmail(auth, email)
+        .then(() => {
+          // Success reset password
+        }).catch((error) => {
+          throw(error)
+        })
     },
     async changePassword (payload) {
       const { newPassword } = payload
-      const user = auth.currentUser;
+      const user = auth.currentUser
 
       await updatePassword(user, newPassword)
         .then(() => {
           // Success change password
         }).catch((error) => {
-          alert(error.message)
-        });
+          throw(error)
+        })
     },
   },
 })

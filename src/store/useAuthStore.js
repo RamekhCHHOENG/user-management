@@ -21,10 +21,10 @@ export const useAuthStore = defineStore('auth', {
       onAuthStateChanged(auth, (user) => {
         if (user) {
           this.getUserData(user.uid)
-          // router.push('/users')
+          router.push('/users')
         } else {
           this.user = {}
-          // router.push('/auth')
+          router.push('/auth')
         }
       })
     },

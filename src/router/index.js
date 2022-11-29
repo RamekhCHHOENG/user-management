@@ -25,11 +25,6 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '@/views/auth/Login')
   }, 
-  // {
-  //   path: '/dashboard',
-  //   name: 'Dashboard',
-  //   component: () => import('@/views/HomeView.vue')
-  // },
   {
     path: '/reset-password',
     name: 'ResetPassword',
@@ -40,7 +35,17 @@ const routes = [
     name: 'UserInactive',
     component: () => import('@/views/auth/InactiveUser.vue')
   },
-  
+  {
+    path: '*',
+    redirect: {
+      name: 'FourOhFour'
+    }
+  },
+  {
+    path: '/404',
+    name: 'FourOhFour',
+    component: () => import('@/views/FourOhFour')
+  }
 ]
 
 const router = new VueRouter({
